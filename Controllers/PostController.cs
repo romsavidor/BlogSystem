@@ -9,6 +9,7 @@ namespace BlogSystem.Controllers;
 [Route("[controller]")]
 public class PostController : ControllerBase
 {
+    // TODO: Move calls logic to handlers?
     private readonly BlogDbContext _context;
 
     private readonly ILogger<PostController> _logger;
@@ -25,14 +26,9 @@ public class PostController : ControllerBase
         try
         {
             // TODO: Add validation (author ID, content/title length, etc)
-            var newPost = new Post
-            {
-                AuthorId = postDto.AuthorId,
-                Title = postDto.Title,
-                Description = postDto.Description,
-                Content = postDto.Content,
-            };
+            var newPost = new Post(postDto.AuthorId, postDto.Title, postDto.Description, postDto.Content);
 
+            // TODO: should Author be assigned here?
             _context.Posts.Add(newPost);
             _context.SaveChanges();
 
@@ -45,5 +41,45 @@ public class PostController : ControllerBase
             return StatusCode(500, "Internal Server Error");
         }
 
+    }
+
+    [HttpGet("/post/{id}")]
+    public IActionResult GetPost(int id, [FromQuery] bool includeAuthor = false)
+    {
+        try
+        {
+            var post = _context.Posts.Find(id);
+
+            if (post == null)
+                return NotFound();
+
+            var postDto = new PostResponseDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Description = post.Description,
+                Content = post.Content
+            };
+
+            if (includeAuthor)
+            {
+                _context.Entry(post).Reference(p => p.Author).Load();
+
+                postDto.Author = new AuthorResponseDto
+                {
+                    Id = post.Author.Id,
+                    Name = post.Author.Name,
+                    Surname = post.Author.Surname
+                };
+            }
+
+            _logger.LogInformation("Post returned successfully");
+            return Ok(postDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting post");
+            return StatusCode(500, "Internal Server Error");
+        }
     }
 }
