@@ -8,9 +8,15 @@ public class Post
     public string Description { get; set; }
     public string Content { get; set; }
 
-    public Post(int id,  int authorId, string title, string description, string content)
+    // TODO: remove if not needed
+    public Post()
     {
-        Id = id;
+        Id = 0;
+    }
+
+    public Post(int authorId, string title, string description, string content)
+    {
+        Id = 0;
         AuthorId = authorId;
         Title = title;
         Description = description;
