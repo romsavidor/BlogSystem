@@ -41,4 +41,32 @@ public class AuthorController : ControllerBase
         }
 
     }
+
+    [HttpGet("/author/{id}")]
+    public IActionResult GetAuthor(int id)
+    {
+        try
+        {
+            var author = _context.Authors.Find(id);
+
+            if (author == null)
+                return NotFound();
+
+            // TODO: Include posts/number of posts
+            var authorDto = new AuthorResponseDto
+            {
+                Id = author.Id,
+                Name = author.Name,
+                Surname = author.Surname
+            };   
+
+            _logger.LogInformation("Author returned successfully");
+            return Ok(authorDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting author");
+            return StatusCode(500, "Internal Server Error");
+        }
+    }
 }

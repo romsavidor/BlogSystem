@@ -26,6 +26,7 @@ public class PostController : ControllerBase
         try
         {
             // TODO: Add validation (author ID, content/title length, etc)
+            // TODO: restrict only using existing author ids?
             var newPost = new Post(postDto.AuthorId, postDto.Title, postDto.Description, postDto.Content);
 
             // TODO: should Author be assigned here?
@@ -51,7 +52,11 @@ public class PostController : ControllerBase
             var post = _context.Posts.Find(id);
 
             if (post == null)
+            {
+                _logger.LogError("Post not found");
                 return NotFound();
+            }
+                
 
             var postDto = new PostResponseDto
             {
@@ -65,12 +70,21 @@ public class PostController : ControllerBase
             {
                 _context.Entry(post).Reference(p => p.Author).Load();
 
-                postDto.Author = new AuthorResponseDto
+                if (post.Author != null)
                 {
-                    Id = post.Author.Id,
-                    Name = post.Author.Name,
-                    Surname = post.Author.Surname
-                };
+                    postDto.Author = new AuthorResponseDto
+                    {
+                        Id = post.Author.Id,
+                        Name = post.Author.Name,
+                        Surname = post.Author.Surname
+                    };
+                }
+                else
+                {
+                    _logger.LogError("Author not found for the requested post");
+                    return NotFound();
+                }
+                
             }
 
             _logger.LogInformation("Post returned successfully");
