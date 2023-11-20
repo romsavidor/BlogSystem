@@ -25,7 +25,6 @@ public class AuthorController : ControllerBase
     {
         try
         {
-            // TODO: Add validation (name, surname char limits)
             var newAuthor = new Author(authorDto.Name, authorDto.Surname);
 
             _context.Authors.Add(newAuthor);
@@ -52,13 +51,7 @@ public class AuthorController : ControllerBase
             if (author == null)
                 return NotFound();
 
-            // TODO: Include posts/number of posts
-            var authorDto = new AuthorResponseDto
-            {
-                Id = author.Id,
-                Name = author.Name,
-                Surname = author.Surname
-            };   
+            var authorDto = new AuthorResponseDto(author.Id, author.Name, author.Surname);
 
             _logger.LogInformation("Author returned successfully");
             return Ok(authorDto);

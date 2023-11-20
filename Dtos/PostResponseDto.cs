@@ -7,4 +7,12 @@ public class PostResponseDto
     public string Description { get; set; }
     public string Content { get; set; }
     public AuthorResponseDto? Author { get; set; }
+
+    public PostResponseDto(int id, string title, string description, string content)
+    {
+        Id = id;
+        Title = title;
+        Description = description;
+        Content = content;
+    }
 }

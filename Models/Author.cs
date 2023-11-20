@@ -6,12 +6,6 @@ public class Author
     public string Name { get; set; }
     public string Surname { get; set; }
 
-    //public Author()
-    //{
-    //    Id = 0;
-    //    Posts = new List<Post>();
-    //}
-
     public Author(string name, string surname)
     {
         Id = 0;

@@ -9,7 +9,7 @@ namespace BlogSystem.Controllers;
 [Route("[controller]")]
 public class PostController : ControllerBase
 {
-    // TODO: Move calls logic to handlers?
+    // TODO: Implement CQRS/MediatR?
     private readonly BlogDbContext _context;
 
     private readonly ILogger<PostController> _logger;
@@ -25,11 +25,17 @@ public class PostController : ControllerBase
     {
         try
         {
-            // TODO: Add validation (author ID, content/title length, etc)
-            // TODO: restrict only using existing author ids?
+            // Validate AuthorId
+            var existingAuthor = _context.Authors.Find(postDto.AuthorId);
+            if (existingAuthor == null)
+            {
+                ModelState.AddModelError("AuthorId", "Author with the specified Id does not exist");
+                _logger.LogError("Author with the specified Id does not exist");
+                return BadRequest(ModelState);
+            }
+
             var newPost = new Post(postDto.AuthorId, postDto.Title, postDto.Description, postDto.Content);
 
-            // TODO: should Author be assigned here?
             _context.Posts.Add(newPost);
             _context.SaveChanges();
 
@@ -56,15 +62,9 @@ public class PostController : ControllerBase
                 _logger.LogError("Post not found");
                 return NotFound();
             }
-                
 
-            var postDto = new PostResponseDto
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Description = post.Description,
-                Content = post.Content
-            };
+
+            var postDto = new PostResponseDto(post.Id, post.Title, post.Description, post.Content);
 
             if (includeAuthor)
             {
@@ -72,12 +72,7 @@ public class PostController : ControllerBase
 
                 if (post.Author != null)
                 {
-                    postDto.Author = new AuthorResponseDto
-                    {
-                        Id = post.Author.Id,
-                        Name = post.Author.Name,
-                        Surname = post.Author.Surname
-                    };
+                    postDto.Author = new AuthorResponseDto(post.Author.Id, post.Author.Name, post.Author.Surname);
                 }
                 else
                 {

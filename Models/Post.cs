@@ -7,13 +7,6 @@ public class Post
     public string Title {  get; set; }
     public string Description { get; set; }
     public string Content { get; set; }
-
-    // TODO: remove if not needed
-    // TODO: address constructor warnings 
-    public Post()
-    {
-        Id = 0;
-    }
  
     public Post(int authorId, string title, string description, string content)
     {
@@ -24,5 +17,5 @@ public class Post
         Content = content;
     }
 
-    public Author Author { get; set; }
+    public Author? Author { get; set; }
 }
