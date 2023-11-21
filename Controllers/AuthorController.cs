@@ -1,7 +1,5 @@
-﻿using BlogSystem.Data;
-using BlogSystem.Dtos;
-using BlogSystem.Models;
-using Microsoft.AspNetCore.Http;
+﻿using BlogSystem.Dtos;
+using BlogSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogSystem.Controllers;
@@ -10,56 +8,22 @@ namespace BlogSystem.Controllers;
 [Route("[controller]")]
 public class AuthorController : ControllerBase
 {
-    private readonly BlogDbContext _context;
+    private readonly IAuthorService _authorService;
 
-    private readonly ILogger<AuthorController> _logger;
-
-    public AuthorController(ILogger<AuthorController> logger, BlogDbContext context)
+    public AuthorController(IAuthorService authorService)
     {
-        _logger = logger;
-        _context = context;
+        _authorService = authorService;
     }
 
     [HttpPost("/author")]
-    public IActionResult CreateAuthor([FromBody] AuthorRequestDto authorDto)
+    public async Task<IActionResult> CreateAuthor([FromBody] AuthorRequestDto authorDto)
     {
-        try
-        {
-            var newAuthor = new Author(authorDto.Name, authorDto.Surname);
-
-            _context.Authors.Add(newAuthor);
-            _context.SaveChanges();
-
-            _logger.LogInformation("Author created successfully");
-            return Ok($"Post with id {newAuthor.Id} created successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating author");
-            return StatusCode(500, "Internal Server Error");
-        }
-
+        return await _authorService.CreateAuthorAsync(authorDto);
     }
 
     [HttpGet("/author/{id}")]
-    public IActionResult GetAuthor(int id)
+    public async Task<IActionResult> GetAuthor(int id)
     {
-        try
-        {
-            var author = _context.Authors.Find(id);
-
-            if (author == null)
-                return NotFound();
-
-            var authorDto = new AuthorResponseDto(author.Id, author.Name, author.Surname);
-
-            _logger.LogInformation("Author returned successfully");
-            return Ok(authorDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting author");
-            return StatusCode(500, "Internal Server Error");
-        }
+        return await _authorService.GetAuthorAsync(id);
     }
 }
