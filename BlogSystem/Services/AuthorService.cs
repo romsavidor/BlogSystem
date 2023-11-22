@@ -1,65 +1,58 @@
 ﻿using BlogSystem.Data;
 using BlogSystem.Dtos;
 using BlogSystem.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BlogSystem.Controllers;
+namespace BlogSystem.Services;
 
-[ApiController]
-[Route("[controller]")]
-public class AuthorController : ControllerBase
+public class AuthorService : IAuthorService
 {
     private readonly BlogDbContext _context;
+    private readonly ILogger<AuthorService> _logger;
 
-    private readonly ILogger<AuthorController> _logger;
-
-    public AuthorController(ILogger<AuthorController> logger, BlogDbContext context)
+    public AuthorService(BlogDbContext context, ILogger<AuthorService> logger)
     {
-        _logger = logger;
         _context = context;
+        _logger = logger;
     }
 
-    [HttpPost("/author")]
-    public IActionResult CreateAuthor([FromBody] AuthorRequestDto authorDto)
+    public async Task<IActionResult> CreateAuthorAsync(AuthorRequestDto authorDto)
     {
         try
         {
             var newAuthor = new Author(authorDto.Name, authorDto.Surname);
 
             _context.Authors.Add(newAuthor);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Author created successfully");
-            return Ok($"Post with id {newAuthor.Id} created successfully");
+            return new OkObjectResult(new AuthorResponseDto(newAuthor.Id, newAuthor.Name, newAuthor.Surname));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating author");
-            return StatusCode(500, "Internal Server Error");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
-
     }
 
-    [HttpGet("/author/{id}")]
-    public IActionResult GetAuthor(int id)
+    public async Task<IActionResult> GetAuthorAsync(int id)
     {
         try
         {
-            var author = _context.Authors.Find(id);
+            var author = await _context.Authors.FindAsync(id);
 
             if (author == null)
-                return NotFound();
+                return new NotFoundResult();
 
             var authorDto = new AuthorResponseDto(author.Id, author.Name, author.Surname);
 
             _logger.LogInformation("Author returned successfully");
-            return Ok(authorDto);
+            return new OkObjectResult(authorDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting author");
-            return StatusCode(500, "Internal Server Error");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 }

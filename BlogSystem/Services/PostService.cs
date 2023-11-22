@@ -1,68 +1,59 @@
-using BlogSystem.Data;
+﻿using BlogSystem.Data;
 using BlogSystem.Dtos;
 using BlogSystem.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BlogSystem.Controllers;
+namespace BlogSystem.Services;
 
-[ApiController]
-[Route("[controller]")]
-public class PostController : ControllerBase
+public class PostService : IPostService
 {
-    // TODO: Implement CQRS/MediatR?
     private readonly BlogDbContext _context;
+    private readonly ILogger<PostService> _logger;
 
-    private readonly ILogger<PostController> _logger;
-
-    public PostController(ILogger<PostController> logger, BlogDbContext context)
+    public PostService(ILogger<PostService> logger, BlogDbContext context)
     {
         _logger = logger;
         _context = context;
     }
 
-    [HttpPost("/post")]
-    public IActionResult CreatePost([FromBody] PostRequestDto postDto)
+    public async Task<IActionResult> CreatePostAsync(PostRequestDto postDto)
     {
         try
         {
             // Validate AuthorId
-            var existingAuthor = _context.Authors.Find(postDto.AuthorId);
+            var existingAuthor = await _context.Authors.FindAsync(postDto.AuthorId);
             if (existingAuthor == null)
             {
-                ModelState.AddModelError("AuthorId", "Author with the specified Id does not exist");
                 _logger.LogError("Author with the specified Id does not exist");
-                return BadRequest(ModelState);
+                return new BadRequestObjectResult("Author with the specified Id does not exist");
             }
 
             var newPost = new Post(postDto.AuthorId, postDto.Title, postDto.Description, postDto.Content);
 
             _context.Posts.Add(newPost);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Post created successfully");
-            return Ok($"Post with id {newPost.Id} created successfully");
+            return new OkObjectResult($"Post with id {newPost.Id} created successfully");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating post");
-            return StatusCode(500, "Internal Server Error");
+            return new StatusCodeResult(500);
         }
-
     }
 
-    [HttpGet("/post/{id}")]
-    public IActionResult GetPost(int id, [FromQuery] bool includeAuthor = false)
+    public async Task<IActionResult> GetPostAsync(int id, bool includeAuthor = false)
     {
         try
         {
-            var post = _context.Posts.Find(id);
+            var post = await _context.Posts.FindAsync(id);
 
             if (post == null)
             {
                 _logger.LogError("Post not found");
-                return NotFound();
+                return new NotFoundResult();
             }
-
 
             var postDto = new PostResponseDto(post.Id, post.Title, post.Description, post.Content);
 
@@ -77,18 +68,17 @@ public class PostController : ControllerBase
                 else
                 {
                     _logger.LogError("Author not found for the requested post");
-                    return NotFound();
+                    return new NotFoundResult();
                 }
-                
             }
 
             _logger.LogInformation("Post returned successfully");
-            return Ok(postDto);
+            return new OkObjectResult(postDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting post");
-            return StatusCode(500, "Internal Server Error");
+            return new StatusCodeResult(500);
         }
     }
 }
