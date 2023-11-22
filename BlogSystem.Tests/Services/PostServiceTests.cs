@@ -1,6 +1,5 @@
 using BlogSystem.Data;
 using BlogSystem.Dtos;
-using BlogSystem.Models;
 using BlogSystem.Services;
 using BlogSystem.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
