@@ -9,8 +9,8 @@ public class BlogDbContext : DbContext
     {
     }
 
-    public DbSet<Post> Posts { get; set; }
-    public DbSet<Author> Authors { get; set; }
+    public virtual DbSet<Post> Posts { get; set; }
+    public virtual DbSet<Author> Authors { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
