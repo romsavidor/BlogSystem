@@ -12,6 +12,9 @@ public class TestSeedData : IDisposable
 
     public TestSeedData(BlogDbContext context)
     {
+        SeededAuthor = new Author("TestAuthor", "TestSurname");
+        SeededPost = new Post(1, "Test Title", "Test Description",
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean m");
         _context = context;
     }
 
@@ -19,14 +22,11 @@ public class TestSeedData : IDisposable
     {
         if (includeAuthor)
         {
-            SeededAuthor = new Author("TestAuthor", "TestSurname");
             _context.Authors.Add(SeededAuthor);
         }
 
         if (includePost)
         {
-            SeededPost = new Post(1, "Test Title", "Test Description",
-                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean m");
             _context.Posts.Add(SeededPost);
         }
 
